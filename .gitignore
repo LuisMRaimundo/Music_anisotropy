@@ -15,4 +15,7 @@ dist/
 build/
 .venv/
 venv/
+
+# Local Streamlit / installer (recreated by installers)
+.streamlit/secrets.toml
 .env

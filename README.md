@@ -28,12 +28,26 @@ print(result.df_results)
 
 See `docs/STREAMLIT_PIPELINE_MIGRATION.md` for UI integration status.
 
-## Streamlit UI
+## One-click install (no Python knowledge required)
+
+Download or clone the project, then use **one file** for your system:
+
+| System | First-time install | Later (already installed) |
+|--------|--------------------|---------------------------|
+| **Windows 10/11** | Double-click **`INSTALL-WINDOWS.bat`** | **`START-Anisotropia.bat`** |
+| **macOS** | Double-click **`INSTALL-MAC.command`** | **`START-Anisotropia.command`** |
+| **Linux** | Run **`bash INSTALL-LINUX.sh`** (or make executable and double-click) | **`./START-Anisotropia.sh`** |
+
+The installer will install Python 3.10+ if needed, create `.venv/`, install dependencies, and open the app in your browser. Details: [`install/README.md`](install/README.md).
+
+## Streamlit UI (manual / developers)
 
 ```bash
 pip install -r requirements.txt
 streamlit run Anisotropia.py
 ```
+
+Runtime-only deps: `requirements-app.txt` (used by installers).
 
 ## Tests and corpus scripts
 
