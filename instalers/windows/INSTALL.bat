@@ -1,25 +1,36 @@
 @echo off
-title Anisotropia Direcional - Install (Windows)
-cd /d "%~dp0\..\.."
+title Anisotropia Direcional - Installer
+cd /d "%~dp0\..\.." || (
+  echo ERROR: Cannot find project root.
+  pause
+  exit /b 1
+)
 
+echo.
+echo  *** USE THIS FILE FOR NORMAL INSTALL ***
 echo.
 echo  ========================================
 echo   Anisotropia Direcional
 echo   One-click install for Windows 10/11
 echo  ========================================
 echo.
-echo  This will install Python (if needed), set up the app,
-echo  and open it in your web browser.
+echo  GitHub: https://github.com/LuisMRaimundo/Music_xml_anisotropy
+echo.
+echo  This installs Python if needed, sets up the app,
+echo  and opens it in your web browser.
+echo.
+echo  Do not close this window until finished.
+echo.
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Install-Anisotropia.ps1"
+set ERR=%ERRORLEVEL%
+
+echo.
+if %ERR% NEQ 0 (
+  echo Installation failed. See install.log in the project folder.
+) else (
+  echo Done.
+)
 echo.
 pause
-
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Install-Anisotropia.ps1"
-if errorlevel 1 (
-    echo.
-    echo  Installation failed. Read the messages above.
-    echo  You can also install Python from https://www.python.org/downloads/
-    echo  then run this file again.
-    echo.
-    pause
-    exit /b 1
-)
+exit /b %ERR%
