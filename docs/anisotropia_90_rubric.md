@@ -57,7 +57,7 @@ Reports/exports include parameters, versions, hashes, corpus ID, metric schema v
 
 ---
 
-## Scoring worksheet (release 2.3.0 patch)
+## Scoring worksheet (release 2.4.0)
 
 | Dimension | Max | Evidence pointer |
 |-----------|-----|------------------|

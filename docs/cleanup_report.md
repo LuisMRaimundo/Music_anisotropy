@@ -9,7 +9,7 @@
 
 | Check | Result |
 |-------|--------|
-| `pytest tests/ -q` | **138 passed** |
+| `pytest tests/ -q` | **141 passed** (2026-06-03) |
 | Coverage (`--cov=anisotropia`) | **84.80%** (threshold 78%) |
 | `compare_reference_outputs.py` | **Passed** (grand staff skip documented) |
 | `reproduce_tables.py` | **Passed** (2 rows written) |
@@ -60,10 +60,10 @@ Created: `archive/README.md`, empty placeholders `scripts_legacy/`, `outputs_leg
 
 | File | Changes |
 |------|---------|
-| `README.md` | 138 tests, ruff in CI, 0 official benchmarks, cleanup doc links |
+| `README.md` | 141 tests, ruff in CI, 0 official benchmarks, cleanup doc links |
 | `MANUAL_TECNICO.md` | v2.4.0, `run_analysis` in §2 and new §12.3, pipeline file list |
 | `MANUAL_METRICAS.md` | Points to `run_analysis` |
-| `docs/anisotropia_current_rating.md` | 138 tests, ~85% coverage |
+| `docs/anisotropia_current_rating.md` | 141 tests, ~85% coverage |
 | `docs/STREAMLIT_PIPELINE_MIGRATION.md` | 88/100, 0 official benchmarks |
 | `docs/cleanup_inventory.md` | Created (inventory + final actions) |
 | `docs/cleanup_report.md` | This file |
@@ -116,7 +116,7 @@ Added: `*.mhtml`, `.ruff_cache/`, `.mypy_cache/`, `*.local.md`, `reports_local/`
 ## 10. Final verification commands
 
 ```text
-pytest tests/ -q                          → 138 passed
+pytest tests/ -q                          → 141 passed
 pytest tests/ --cov=anisotropia ...     → 84.80%, fail-under 78% OK
 python corpus/scripts/compare_reference_outputs.py  → passed
 python corpus/scripts/reproduce_tables.py           → passed

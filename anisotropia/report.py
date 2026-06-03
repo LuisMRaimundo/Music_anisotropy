@@ -31,7 +31,7 @@ def _grace_operational_short(grace_policy: Any) -> str:
         return "Not emitted as note events (excluded at parse)."
     if g == "include":
         return "Emitted as normal note events (music21 onsets/durations)."
-    return "Not fully implemented; excluded at parse (same effect as exclude)."
+    return "Not implemented; programmatic use raises GracePolicyNotImplementedError."
 
 
 def _grace_operational_paragraph(grace_policy: Any) -> str:
@@ -48,8 +48,8 @@ def _grace_operational_paragraph(grace_policy: Any) -> str:
             "as returned by the parser (they contribute to events and, unless filtered elsewhere, to transitions)."
         )
     return (
-        "The `include_attached` policy is **not fully implemented**; graces are currently **excluded** at parse time, "
-        "so operational behaviour matches exclusion until attachment-to-following-onset is implemented."
+        "The `include_attached` policy is **not implemented** in this release. "
+        "Passing it to the parser raises `GracePolicyNotImplementedError` (use `exclude` or `include`)."
     )
 
 

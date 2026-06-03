@@ -272,7 +272,7 @@ def parse_musicxml(
     share the same ``ql`` (``coincident``, recommended) or use the legacy micro-stagger.
 
     **grace_policy:** ``exclude`` (default, recommended for directional analysis), ``include``,
-    or ``include_attached`` (currently treated as ``exclude``; full attachment not implemented).
+    or ``include_attached`` (raises :class:`~anisotropia.config.GracePolicyNotImplementedError` — not implemented).
 
     **pitch_space:** ``sounding`` (default, cross-instrument comparison) or ``written``.
     Applies ``Score.toSoundingPitch()`` when ``sounding``. On failure, written pitch is
@@ -288,7 +288,7 @@ def parse_musicxml(
     exclude_grace
         Deprecated: if set, overrides ``grace_policy`` (True → exclude, False → include).
     grace_policy
-        ``exclude`` | ``include`` | ``include_attached``.
+        ``exclude`` | ``include``. ``include_attached`` is rejected at validation time.
     split_voices
         If True, build **separate** event lists per MusicXML voice within each part
         (labels ``Name | v1``, ``Name | v2``, …). If only one voice exists, the part

@@ -44,7 +44,7 @@
     "n": 3,
     "tau": 0.0
   },
-  "software_version": "2.3.0",
+  "software_version": "2.4.0",
   "summary_counts": {
     "cross_voice_chaining_in_main_field": false,
     "main_field_horizontal_only": true,
@@ -53,6 +53,7 @@
     "n_reference_part_horizontal": 3,
     "n_vertical_auxiliary_total": 0,
     "per_voice_chain_construction": true,
+    "reference_part_name": "Part1 (P1)",
     "split_by_voice_output_aggregation": false,
     "vertical_auxiliary_built": true,
     "voice_aware_transition_construction": true

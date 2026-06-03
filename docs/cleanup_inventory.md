@@ -2,7 +2,8 @@
 
 **Date:** 2026-05-20  
 **Identity:** systematic notational directional-field analyzer (symbolic MusicXML).  
-**Baseline (Phase 0):** 138 tests passed; coverage 84.80%; ruff passed; corpus scripts passed; not a git repository.
+**Baseline (Phase 0):** 138 tests passed; coverage 84.80%; ruff passed; corpus scripts passed.  
+**Current (2026-06-03):** **141** tests; coverage ~**85%**; `run_analysis` + Streamlit 2.4.0 documented in README / MANUAL_TECNICO §12.3.
 
 ---
 
@@ -87,12 +88,13 @@
 
 ## G. Documentation updates required
 
-| Doc | Issue | Action |
-|-----|-------|--------|
-| `docs/anisotropia_current_rating.md` | Says 135 tests | Update to 138; coverage ~85% |
-| `README.md` | Ruff blocking not explicit | Add ruff to CI/commands |
-| `MANUAL_TECNICO.md` | Version 2.2.1; no `run_analysis` in §12 | Bump to 2.4.0; add §12.3 `run_analysis` |
-| `MANUAL_TECNICO.md` §175 | Implies Streamlit only uses transitions builder | Clarify `run_analysis` path |
+| Doc | Issue | Status (2026-06-03) |
+|-----|-------|---------------------|
+| `docs/anisotropia_current_rating.md` | Test count / rating evidence | **Done** — 141 tests |
+| `README.md` | Ruff in CI | **Done** — see `.github/workflows/tests.yml` |
+| `MANUAL_TECNICO.md` | `run_analysis` in §12.3 | **Done** — v2.4.0 |
+| `anisotropia/parsing.py` | `include_attached` wording | **Done** — explicit `NotImplementedError` |
+| Frozen `reference_outputs/*.json` | `software_version` 2.3.0 | **Done** — regenerated at 2.4.0 |
 
 ---
 
