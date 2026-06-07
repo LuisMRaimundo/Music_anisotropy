@@ -11,10 +11,17 @@ Subset control: optional windows/parts parameters restrict which data are shown.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+mpl: Any = None
+plt: Any = None
+rcParams: Any = None
+Ellipse: Any = None
+FuncFormatter: Any = None
+MaxNLocator: Any = None
 
 try:
     import matplotlib as mpl
@@ -23,11 +30,7 @@ try:
     from matplotlib import rcParams
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 except ImportError:
-    mpl = None
-    plt = None
-    rcParams = None
-    FuncFormatter = None  # type: ignore[misc, assignment]
-    MaxNLocator = None  # type: ignore[misc, assignment]
+    pass
 
 from music21 import pitch as m21_pitch
 
@@ -89,6 +92,23 @@ PROFESSIONAL_COLORS = {
 FIG_EMPTY_W, FIG_EMPTY_H = 5.6, 3.2
 # Flow map: cap size; gentler growth per window / part than original (0.85 / 0.45).
 FIG_FLOW_MAX_W, FIG_FLOW_MAX_H = 11.0, 6.5
+
+
+def _figure_facecolor() -> str:
+    fc = RC_PROFESSIONAL["figure.facecolor"]
+    return fc if isinstance(fc, str) else str(fc)
+
+
+def _finite_float(value: object, default: float = float("nan")) -> float:
+    if isinstance(value, (int, float)) and np.isfinite(value):
+        return float(value)
+    return default
+
+
+def _get_cmap(name: str):
+    if mpl is not None and hasattr(mpl, "colormaps"):
+        return mpl.colormaps[name]
+    return plt.cm.get_cmap(name)
 
 
 @contextmanager
@@ -178,7 +198,7 @@ def flow_map_quiver(
         n_part = len(parts)
         if n_win == 0 or n_part == 0:
             fig, ax = plt.subplots(figsize=(FIG_EMPTY_W, FIG_EMPTY_H))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             ax.text(
                 0.5, 0.5, "No data",
                 ha="center", va="center", fontsize=11, color=PROFESSIONAL_COLORS["muted"],
@@ -196,20 +216,20 @@ def flow_map_quiver(
                 continue
             wi = win_to_idx[row["window"]]
             pi = part_to_idx[row["part"]]
-            mu = row.get("mu")
-            A = row.get("A_tensor", 0)
-            D = row.get("D", 0)
-            if np.isfinite(mu) and np.isfinite(A):
-                U[pi, wi] = A * np.cos(mu)
-                V[pi, wi] = A * np.sin(mu)
-            if np.isfinite(D):
-                C_arr[pi, wi] = (float(D) + 1) / 2
+            mu_f = _finite_float(row.get("mu"))
+            A_f = _finite_float(row.get("A_tensor", 0), default=0.0)
+            D_f = _finite_float(row.get("D", 0), default=float("nan"))
+            if np.isfinite(mu_f) and np.isfinite(A_f):
+                U[pi, wi] = A_f * np.cos(mu_f)
+                V[pi, wi] = A_f * np.sin(mu_f)
+            if np.isfinite(D_f):
+                C_arr[pi, wi] = (D_f + 1) / 2
         valid_C = np.isfinite(C_arr)
         C_plot = np.ma.masked_where(~valid_C, np.where(valid_C, C_arr, 0.0))
         fw = min(FIG_FLOW_MAX_W, max(5.8, n_win * 0.52))
         fh = min(FIG_FLOW_MAX_H, max(3.0, n_part * 0.28))
         fig, ax = plt.subplots(figsize=(fw, fh))
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         _style_axes_grid(ax)
         mag = np.sqrt(U * U + V * V)
         max_mag = float(np.nanmax(mag)) if np.any(np.isfinite(mag)) else 1.0
@@ -218,7 +238,7 @@ def flow_map_quiver(
         scale_val = arrow_scale if arrow_scale is not None else 0.6
         quiver_scale = max_mag / max(scale_val, 0.01)
         if np.any(valid_C):
-            cmap = plt.cm.RdBu_r.copy()
+            cmap = _get_cmap("RdBu_r").copy()
             cmap.set_bad(color=PROFESSIONAL_COLORS["diverging_bad"], alpha=0.45)
             Q = ax.quiver(
                 X, Y, U, V, C_plot, cmap=cmap,
@@ -228,7 +248,8 @@ def flow_map_quiver(
             cbar = plt.colorbar(Q, ax=ax, shrink=0.82, pad=0.02, aspect=22)
             cbar.set_label("Drift D (down ← 0 → up)", fontsize=9, color=PROFESSIONAL_COLORS["ink"])
             cbar.ax.tick_params(labelsize=8, colors=PROFESSIONAL_COLORS["slate"])
-            cbar.outline.set_edgecolor(PROFESSIONAL_COLORS["border"])
+            outline = cbar.outline
+            outline.set_edgecolor(PROFESSIONAL_COLORS["border"])
         else:
             ax.quiver(
                 X, Y, U, V, color=PROFESSIONAL_COLORS["slate"],
@@ -297,13 +318,13 @@ def plot_tensor_ellipses(
         n = len(windows)
         if n == 0:
             fig, ax = plt.subplots(figsize=(FIG_EMPTY_W, FIG_EMPTY_H))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             ax.set_facecolor("#F1F5F9")
             return fig
         cols = min(4, max(1, n))
         rows = (n + cols - 1) // cols
         fig, axes = plt.subplots(rows, cols, figsize=(2.65 * cols + 0.35, 2.65 * rows + 0.55))
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         if rows == 1 and cols == 1:
             axes_flat = [axes]
         else:
@@ -319,8 +340,8 @@ def plot_tensor_ellipses(
                 lam1 = float(lam1) if (isinstance(lam1, (int, float)) and np.isfinite(lam1)) else None
                 lam2 = float(lam2) if (isinstance(lam2, (int, float)) and np.isfinite(lam2)) else None
                 w, h, ang = tensor_ellipse_from_metrics(
-                    float(A) if np.isfinite(A) else 0,
-                    float(mu) if np.isfinite(mu) else 0,
+                    _finite_float(A, default=0.0),
+                    _finite_float(mu, default=0.0),
                     lam1=lam1,
                     lam2=lam2,
                 )
@@ -374,14 +395,14 @@ def plot_tensor_ellipses_per_instrument(
         n_cells = len(parts) * len(windows)
         if n_cells == 0:
             fig, ax = plt.subplots(figsize=(FIG_EMPTY_W, FIG_EMPTY_H))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             ax.set_facecolor("#F1F5F9")
             return fig
         n_show = min(n_cells, max_plots)
         cols = min(4, max(1, len(windows)), max_plots)
         rows = min((n_show + cols - 1) // cols, 8)
         fig, axes = plt.subplots(rows, cols, figsize=(2.55 * cols + 0.32, 2.35 * rows + 0.45))
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         if rows == 1 and cols == 1:
             axes_flat = [axes]
         else:
@@ -403,8 +424,8 @@ def plot_tensor_ellipses_per_instrument(
                     lam1 = float(lam1) if (isinstance(lam1, (int, float)) and np.isfinite(lam1)) else None
                     lam2 = float(lam2) if (isinstance(lam2, (int, float)) and np.isfinite(lam2)) else None
                     w, h, ang = tensor_ellipse_from_metrics(
-                        float(A) if np.isfinite(A) else 0,
-                        float(mu) if np.isfinite(mu) else 0,
+                        _finite_float(A, default=0.0),
+                        _finite_float(mu, default=0.0),
                         lam1=lam1,
                         lam2=lam2,
                     )
@@ -470,7 +491,7 @@ def plot_rose_diagram(
                     rows, cols, subplot_kw=dict(projection="polar"),
                     figsize=(2.75 * cols + 0.2, 2.75 * rows + 0.35),
                 )
-                fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+                fig.patch.set_facecolor(_figure_facecolor())
                 axes_flat = axes.flatten() if hasattr(axes, "flatten") else [axes]
                 for idx, win in enumerate(wins):
                     ax = axes_flat[idx]
@@ -479,7 +500,10 @@ def plot_rose_diagram(
                     if dt_col in dfw.columns and "dp" in dfw.columns:
                         dff = dfw[dfw[dt_col] > 0]
                         if not dff.empty:
-                            theta = np.arctan2(dff["dp"].values, dff[dt_col].values)
+                            theta = np.arctan2(
+                                np.asarray(dff["dp"].values, dtype=float),
+                                np.asarray(dff[dt_col].values, dtype=float),
+                            )
                             bins = np.linspace(-np.pi, np.pi, n_bins + 1)
                             hist, _ = np.histogram(theta, bins=bins)
                             width = 2 * np.pi / n_bins
@@ -499,23 +523,26 @@ def plot_rose_diagram(
                 return fig
         if dt_col not in df_trans.columns or "dp" not in df_trans.columns:
             fig, ax = plt.subplots(subplot_kw=dict(projection="polar"), figsize=(4.0, 4.0))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             _style_polar(ax)
             ax.set_title("Rose diagram — no data", fontsize=11, pad=16, color=PROFESSIONAL_COLORS["muted"])
             return fig
         dff = df_trans[df_trans[dt_col] > 0].copy()
         if dff.empty:
             fig, ax = plt.subplots(subplot_kw=dict(projection="polar"), figsize=(4.0, 4.0))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             _style_polar(ax)
             ax.set_title("Rose diagram — no valid transitions", fontsize=11, pad=16, color=PROFESSIONAL_COLORS["muted"])
             return fig
-        theta = np.arctan2(dff["dp"].values, dff[dt_col].values)
+        theta = np.arctan2(
+            np.asarray(dff["dp"].values, dtype=float),
+            np.asarray(dff[dt_col].values, dtype=float),
+        )
         bins = np.linspace(-np.pi, np.pi, n_bins + 1)
         hist, _ = np.histogram(theta, bins=bins)
         width = 2 * np.pi / n_bins
         fig, ax = plt.subplots(subplot_kw=dict(projection="polar"), figsize=(4.1, 4.1))
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         _style_polar(ax)
         ax.bar(
             bins[:-1] + width / 2, hist, width=width * 0.92, bottom=0,
@@ -576,7 +603,7 @@ def plot_pitch_over_time(
         parts = [p for p in parts if p in events_by_part and events_by_part[p]]
         if not parts:
             fig, ax = plt.subplots(figsize=(7.2, 3.5))
-            fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+            fig.patch.set_facecolor(_figure_facecolor())
             ax.set_facecolor("#FFFFFF")
             ax.text(
                 0.5, 0.5, "No event data",
@@ -587,13 +614,10 @@ def plot_pitch_over_time(
             return fig
         n = len(parts)
         _name = "tab10" if n <= 10 else "tab20"
-        if mpl is not None and hasattr(mpl, "colormaps"):
-            _cmap = mpl.colormaps[_name]
-        else:
-            _cmap = plt.cm.get_cmap(_name)
+        _cmap = _get_cmap(_name)
         colors = [_cmap(i / max(n - 1, 1)) for i in range(n)]
         fig, ax = plt.subplots(figsize=(7.8, 3.9))
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         _style_axes(ax)
         x_label = "Time (s)" if has_seconds else "Time (quarter lengths)"
         ax.set_xlabel(x_label)
@@ -622,7 +646,7 @@ def plot_pitch_over_time(
             borderpad=0.6, labelspacing=0.35,
         )
         leg.get_frame().set_edgecolor(PROFESSIONAL_COLORS["border"])
-        fig.tight_layout(rect=[0, 0, 0.82, 1])
+        fig.tight_layout(rect=(0, 0, 0.82, 1))
         return fig
 
 
@@ -648,7 +672,7 @@ def plot_time_curves(
         df["win_idx"] = df["window"].map(win_order)
         df = df.sort_values("win_idx")
         fig, axes = plt.subplots(4, 1, figsize=(7.2, 7.4), sharex=True)
-        fig.patch.set_facecolor(RC_PROFESSIONAL["figure.facecolor"])
+        fig.patch.set_facecolor(_figure_facecolor())
         palette = _scope_colors()
         scopes = list(df["scope"].unique())
         scope_color = {s: palette[i % len(palette)] for i, s in enumerate(scopes)}
