@@ -18,7 +18,7 @@ def _fmt(x: Any) -> str:
     return str(x)
 
 
-def _fmt_ci(lo: float, hi: float) -> str:
+def _fmt_ci(lo: Optional[float], hi: Optional[float]) -> str:
     if (lo is None or pd.isna(lo)) or (hi is None or pd.isna(hi)):
         return ""
     return f"[{lo:.4f}, {hi:.4f}]"
@@ -317,8 +317,12 @@ def generate_report(
         report.append("")
         report.append("| Metric | Value | 95% CI |")
         report.append("|--------|-------|--------|")
-        a_ci = _fmt_ci(row.get("A_tensor_ci_lo"), row.get("A_tensor_ci_hi")) or "—"
-        r_ci = _fmt_ci(row.get("R_ci_lo"), row.get("R_ci_hi")) or "—"
+        a_lo: Optional[float] = row.get("A_tensor_ci_lo")
+        a_hi: Optional[float] = row.get("A_tensor_ci_hi")
+        a_ci = _fmt_ci(a_lo, a_hi) or "—"
+        r_lo: Optional[float] = row.get("R_ci_lo")
+        r_hi: Optional[float] = row.get("R_ci_hi")
+        r_ci = _fmt_ci(r_lo, r_hi) or "—"
         report.append(f"| D | {_fmt(row['D'])} | — |")
         report.append(f"| τ | {_fmt(row['tau'])} | — |")
         report.append(f"| A_tensor | {_fmt(row['A_tensor'])} | {a_ci} |")
